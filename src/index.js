@@ -52,6 +52,7 @@ function onSubmitSearchForm(evt) {
         );
         refs.gallery.innerHTML = createPictureMarkup(hits);
         lightbox.refresh();
+        smoothScroll();
         showLoadMoreBtn();
       }
       if (totalHits < picturesApi.per_page) {
@@ -76,6 +77,7 @@ function onClickLoadMore() {
       }
       refs.gallery.insertAdjacentHTML('beforeend', createPictureMarkup(hits));
       lightbox.refresh();
+      smoothScroll();
     })
     .catch(error => {
       console.log(error);
@@ -103,4 +105,15 @@ function errorMessage() {
     'Sorry, there are no images matching your search query. Please try again.',
     notiflixParams
   );
+}
+
+function smoothScroll() {
+  const { height: cardHeight } = document
+    .querySelector('.gallery')
+    .firstElementChild.getBoundingClientRect();
+
+  window.scrollBy({
+    top: cardHeight * 2,
+    behavior: 'smooth',
+  });
 }
