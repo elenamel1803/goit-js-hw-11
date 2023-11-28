@@ -25,14 +25,16 @@ let lightbox = new SimpleLightbox('.gallery a', {
 });
 
 let searchQueryKey = '';
+let loading = false;
+let endMessageDisplayed = false;
 
-showLoadMoreBtn(false);
-
+window.addEventListener('scroll', onInfiniteScroll);
 refs.formEl.addEventListener('submit', onSubmitSearchForm);
 refs.loadMoreBtn.addEventListener('click', onClickLoadMore);
 
 function onSubmitSearchForm(evt) {
   evt.preventDefault();
+  showLoadMoreBtn(false);
   refs.gallery.innerHTML = '';
   picturesApi.page = 1;
   picturesApi.query = evt.currentTarget.elements.searchQuery.value;
@@ -85,6 +87,32 @@ function onClickLoadMore() {
     });
 }
 
+function onInfiniteScroll() {
+  if (shouldLoadMore()) {
+    loading = true;
+    picturesApi.page += 1;
+    picturesApi.fetchPictures().then(({ totalHits, hits }) => {
+      if (hits.length === 0) {
+        return;
+      }
+      if (hits.length > 0) {
+        refs.gallery.insertAdjacentHTML('beforeend', createPictureMarkup(hits));
+        lightbox.refresh();
+        smoothScroll();
+      }
+      loading = false;
+      if (
+        !endMessageDisplayed &&
+        picturesApi.page * picturesApi.per_page >= totalHits
+      ) {
+        showLoadMoreBtn(false);
+        infoEndMessage();
+        endMessageDisplayed = true;
+      }
+    });
+  }
+}
+
 function showLoadMoreBtn(isShow = true) {
   refs.loadMoreBtn.style.visibility = isShow ? 'visible' : 'hidden';
 }
@@ -116,4 +144,9 @@ function smoothScroll() {
     top: cardHeight * 2,
     behavior: 'smooth',
   });
+}
+
+function shouldLoadMore() {
+  const { scrollTop, clientHeight, scrollHeight } = document.documentElement;
+  return scrollTop + clientHeight >= scrollHeight - 200 && !loading;
 }
