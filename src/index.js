@@ -1,6 +1,8 @@
 import { RequestApi } from './pictures-api';
 import { createPictureMarkup } from './create-markup';
 import Notiflix from 'notiflix';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const refs = {
   formEl: document.querySelector('.search-form'),
@@ -16,6 +18,11 @@ const notiflixParams = {
   width: '400px',
   fontSize: '20px',
 };
+
+let lightbox = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+  captionDelay: 250,
+});
 
 let searchQueryKey = '';
 
@@ -44,6 +51,7 @@ function onSubmitSearchForm(evt) {
           notiflixParams
         );
         refs.gallery.innerHTML = createPictureMarkup(hits);
+        lightbox.refresh();
         showLoadMoreBtn();
       }
       if (totalHits < picturesApi.per_page) {
@@ -67,6 +75,7 @@ function onClickLoadMore() {
         infoEndMessage();
       }
       refs.gallery.insertAdjacentHTML('beforeend', createPictureMarkup(hits));
+      lightbox.refresh();
     })
     .catch(error => {
       console.log(error);
